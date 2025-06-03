@@ -20,9 +20,9 @@
 
 Product_info table information.
 
-##Original table structure
+## Original table structure
 
-###product_info
+### product_info
 | Column Name           | Data Type      | Description |
 |-----------------------|----------------|-------------|
 | product_id            | nvarchar(100)  | The unique identifier for the product from the site |
@@ -50,9 +50,9 @@ Product_info table information.
 | child_max_price       | decimal(18, 2) | The highest price among the variations of the product |
 | child_min_price       | decimal(18, 2) | The lowest price among the variations of the product |
 
-##Review table information.
+## Review table information.
 
-###reviews1
+### reviews1
 | Column Name               | Data Type       | Description |
 |---------------------------|-----------------|-------------|
 | author_id                 | nvarchar(20)    | The unique identifier for the author of the review on the website |
@@ -81,20 +81,20 @@ Product_info table information.
 
 **Normalize Table**
 
-###product
+### product
 | Column Name | Data Type      | Description                              |
 |-------------|----------------|------------------------------------------|
 | product_id  | nvarchar(100)  | Primary key, unique identifier for each product |
 | product_name| nvarchar(150)  | Name of the product                      |
 | brand_id    | nvarchar(20)   | Foreign key referencing brands(brand_id) |
 
-###brands
+### brands
 | Column Name | Data Type      | Description                              |
 |-------------|----------------|------------------------------------------|
 | brand_id    | nvarchar(20)   | Primary key, unique identifier for each brand |
 | brand_name  | nvarchar(150)  | Name of the brand                        |
 
-###product_variation
+### product_variation
 | Column Name         | Data Type       | Description                              |
 |---------------------|-----------------|------------------------------------------|
 | product_id          | nvarchar(100)   | Composite PK/FK referencing product(product_id) |
@@ -111,7 +111,7 @@ Product_info table information.
 | var_max_price       | decimal(18,2)   | Maximum price among variations           |
 | var_min_price       | decimal(18,2)   | Minimum price among variations           |
 
-###product_status
+### product_status
 | Column Name        | Data Type      | Description                              |
 |--------------------|---------------|------------------------------------------|
 | product_id         | nvarchar(100) | PK/FK referencing product(product_id)    |
@@ -121,7 +121,7 @@ Product_info table information.
 | out_of_stock       | bit           | 1=true (out of stock), 0=false           |
 | sephora_exclusive  | bit           | 1=true (Sephora exclusive), 0=false      |
 
-###product_pricing
+### product_pricing
 | Column Name      | Data Type      | Description                              |
 |------------------|---------------|------------------------------------------|
 | product_id       | nvarchar(100) | PK/FK referencing product(product_id)    |
@@ -129,7 +129,7 @@ Product_info table information.
 | value_price_usd  | decimal(18,2) | Potential cost savings                   |
 | sale_price_usd   | decimal(18,2) | Sale price in US dollars                 |
 
-###author
+### author
 | Column Name | Data Type     | Description                              |
 |-------------|---------------|------------------------------------------|
 | author_id   | nvarchar(20)  | Primary key, unique author identifier    |
@@ -138,7 +138,7 @@ Product_info table information.
 | skin_type   | nvarchar(50)  | Author's skin type                       |
 | hair_color  | nvarchar(50)  | Author's hair color                      |
 
-###author_reviewtext
+### author_reviewtext
 | Column Name      | Data Type       | Description                              |
 |------------------|-----------------|------------------------------------------|
 | author_id        | nvarchar(20)    | FK referencing author(author_id)         |
@@ -147,7 +147,7 @@ Product_info table information.
 | review_text      | nvarchar(MAX)   | Text content of the review               |
 | submission_time  | date            | Date when review was submitted           |
 
-###author_rating
+### author_rating
 | Column Name               | Data Type      | Description                              |
 |---------------------------|----------------|------------------------------------------|
 | author_id                 | nvarchar(20)   | FK referencing author(author_id)         |
@@ -208,53 +208,41 @@ Created an SSIS project in Microsoft Visual Studio and SSMS to automate the norm
    - Truncates all 6 staging tables before data loading
    - Ensures clean slate for each ETL run
 
- 
-
 ![clear staging](https://github.com/user-attachments/assets/bba7cc89-1693-43d3-8c72-322fb0c15679)
 
+SQL Command
 
+``` sql
+TRUNCATE TABLE review_staging;
+TRUNCATE TABLE product_staging;
+TRUNCATE TABLE brand_staging;
+TRUNCATE TABLE product_pricing_staging;
+TRUNCATE TABLE product_variation_staging;
+TRUNCATE TABLE product_status_staging;
 
-
-
-
-
-
+```
 2. **Data Flow Task: product_staging**
 •	Flat File Source > Data Conversion (ingredient column from dt_text to dt_ntext) > ole db destination (into product_staging table in SSMS)
 •	Any data error from Flat file source > Flat File Destination (product_error)
-
-
  
 ![product_staging](https://github.com/user-attachments/assets/d24327a3-2fc8-4d05-8435-65d6cd21195c)
-
-
-
 
 3. **Data Flow Task: DFT_mainproduct1**
 •	OLE DB Source > lookup(lookupBrand) > no match output > sort(no_matchB) > ole destination (Brands table)
 •	As for the match output > sort(matchB) > ole destination (brands_staging table)
 •	Sort is use to remove duplicate.
- 
 
 ![DFT_mainproduct1](https://github.com/user-attachments/assets/5a8b92ca-039a-4ade-a125-115810755fa6)
-
-
-
 
 4. **Data Flow Task: DFT_mainproduct2**
 •	OLE DB Source > lookup(lookupProduct) > no match output > sort(no_matchP) > ole destination (product table)
 •	As for the match output > sort(matchP) > ole destination (product_staging table)
 •	Sort is use to remove duplicate.
 
- 
-
 ![DFT_mainproduct2](https://github.com/user-attachments/assets/1c0ade07-6cae-4297-b248-f5f88ee84a13)
 
-
-
-
-
 5. **Data Flow Task: DFT_product_subtable**
+   
 •	OLE DB Source > multicast > lookup(lookupPP) > no match output > sort(no_matchPP) > ole destination (product_pricing table)
 •	As for the match output > sort(matchPP) > ole destination (product_pricing_staging table)
 •	Sort is use to remove duplicate
@@ -269,22 +257,69 @@ Created an SSIS project in Microsoft Visual Studio and SSMS to automate the norm
 
   ![DFT product_subtable](https://github.com/user-attachments/assets/8b107c47-3b8e-488a-8645-3ae1b5e6cd23)
   
-
 6. **Execute SQL Task (Update Main Tables)**
 - Updates target tables from staging tables
 - Strategy: Uses staging data to update main tables when product_id matches but data has changed
 
 ![UPDATE TABLE](https://github.com/user-attachments/assets/17c05380-624d-457d-ae3a-e88f9e84c41f)
 
- 
+SQL Command
+
+``` sql
+UPDATE p
+SET p.product_name = ps.product_name
+FROM product AS p
+INNER JOIN product_staging AS ps
+ON p.product_id = ps.product_id;
+
+UPDATE b
+SET b.brand_name = bs.brand_name
+FROM brands AS b
+INNER JOIN brand_staging AS bs
+ON b.brand_id = bs.brand_id;
+
+UPDATE pp
+SET pp.price_usd = pps.price_usd,
+    pp.value_price_usd = pps.value_price_usd,
+    pp.sale_price_usd = pps.sale_price_usd
+FROM product_pricing AS pp
+INNER JOIN product_pricing_staging AS pps
+ON pp.product_id = pps.product_id;
+
+UPDATE pSta
+SET pSta.limited_edition = pStaS.limited_edition,
+    pSta.new = pStaS.new,
+    pSta.online_only = pStaS.online_only,
+    pSta.out_of_stock = pStaS.out_of_stock,
+    pSta.sephora_exclusive = pStaS.sephora_exclusive
+FROM product_status AS pSta
+INNER JOIN product_status_staging AS pStaS
+ON pSta.product_id = pStaS.product_id;
+
+
+UPDATE pv
+SET pv.size = pvs.size,
+    pv.variation_type = pvs.variation_type,
+    pv.variation_value = pvs.variation_value,
+    pv.variation_desc = pvs.variation_desc,
+    pv.ingredients = pvs.ingredients,
+    pv.highlights = pvs.highlights,
+    pv.primary_category = pvs.primary_category,
+    pv.secondary_category = pvs.secondary_category,
+    pv.tertiary_category = pvs.tertiary_category,
+    pv.variation_count = pvs.variation_count,
+    pv.var_max_price = pvs.var_max_price,
+    pv.var_min_price = pvs.var_min_price
+FROM product_variation AS pv
+INNER JOIN product_variation_staging AS pvs
+ON pv.product_id = pvs.product_id;
+
+```
 
 7. **Data Flow Task: review_staging**
 •	Flat file source > Ole DB Destination (review_staging table)
-
  
 ![review staging](https://github.com/user-attachments/assets/e47e5232-9747-427b-9d69-d09ab54f8f25)
-
-
 
 8. **Execute SQL Task: Author Processing**
 - Uses `MERGE INTO` statement to:
@@ -292,27 +327,87 @@ Created an SSIS project in Microsoft Visual Studio and SSMS to automate the norm
   - Perform data normalization
   - Eliminate duplicates
 
-
  ![DFT_author](https://github.com/user-attachments/assets/0e8dd0e5-b399-4f69-b431-7bd1b0cec331)
 
+ SQL Command
+
+``` sql
+WITH dup AS (
+	SELECT author_id,skin_tone,skin_type, hair_color, eye_color,submission_time,
+                              ROW_NUMBER() OVER (PARTITION BY author_id ORDER BY submission_time DESC) AS rn
+                FROM review_staging)
+
+MERGE INTO author AS a
+USING ( SELECT author_id,skin_tone,skin_type,hair_color,eye_color FROM dup WHERE rn = 1) AS adup
+ON a.author_id = adup.author_id
+
+WHEN MATCHED THEN
+UPDATE 
+	SET a.skin_tone = adup.skin_tone,
+                        a.skin_type = adup.skin_type,
+                        a.hair_color = adup.hair_color,
+                        a.eye_color = adup.eye_color
+
+WHEN NOT MATCHED BY TARGET THEN
+INSERT (author_id,skin_tone,skin_type, hair_color, eye_color)
+VALUES(adup.author_id,adup.skin_tone,adup.skin_type,adup.hair_color,adup.eye_color);
+```
 
 9. **Execute SQL Task: Author Rating Processing**
 - Uses Common Table Expression (CTE) to:
   - Filter duplicates
   - Insert clean data into author_rating table
-
  
 ![DFT_author_rating](https://github.com/user-attachments/assets/b6c389aa-aaa8-439b-91f7-d2608b0e9dfd)
 
+ SQL Command
 
+``` sql
+WITH dup AS (
+	SELECT author_id,product_id,rating,is_recommended,tot_pos_feedback,tot_neg_feedback,tot_feedback,helpfullness,submission_time,
+                              ROW_NUMBER() OVER (PARTITION BY author_id,product_id,rating,is_recommended,tot_pos_feedback,tot_neg_feedback,tot_feedback,helpfullness,submission_time ORDER BY (SELECT NULL)) AS rn
+                FROM review_staging)
+
+INSERT INTO author_rating
+SELECT author_id,product_id,rating,is_recommended,tot_pos_feedback,tot_neg_feedback,tot_feedback,helpfullness,submission_time
+FROM dup WHERE rn = 1 AND NOT EXISTS (SELECT 1 FROM author_rating AS ar
+    					WHERE ar.author_id = dup.author_id
+      					AND ar.product_id = dup.product_id
+      					AND ar.rating = dup.rating
+      					AND ar.is_recommended = dup.is_recommended
+      					AND ar.tot_pos_feedback = dup.tot_pos_feedback
+      					AND ar.tot_neg_feedback = dup.tot_neg_feedback
+      					AND ar.tot_feedback = dup.tot_feedback
+      					AND ar.helpfullness = dup.helpfullness
+      					AND ar.submission_time = dup.submission_time);
+```
 
 10. **Execute SQL Task: Author Review Text Processing**
  - Uses direct SQL commands instead of SSIS components because:
    - Better performance with large datasets
    - More efficient duplicate handling
  
-
 ![author_reviewtext](https://github.com/user-attachments/assets/bc7ecad3-fc27-40db-9214-1870381bd435)
+
+ SQL Command
+
+``` sql
+WITH dup AS
+(
+SELECT author_id,product_id,review_title,review_text,submission_time,
+        ROW_NUMBER() OVER (PARTITION BY author_id,product_id,review_title,review_text,submission_time ORDER BY (SELECT NULL)) AS rn
+ FROM review_staging)
+
+INSERT INTO author_reviewtext
+SELECT author_id,product_id,review_title,review_text,submission_time 
+FROM dup WHERE rn = 1 AND NOT EXISTS (SELECT 1 FROM author_reviewtext AS art
+    					WHERE art.author_id = dup.author_id
+      					AND art.product_id = dup.product_id
+      					AND art.review_title = dup.review_title
+      					AND art.review_text = dup.review_text
+      					AND art.submission_time = dup.submission_time
+      					);
+```
 
 ### Key Design Decisions
 - **Staging Tables**: Used for interim storage and data validation
