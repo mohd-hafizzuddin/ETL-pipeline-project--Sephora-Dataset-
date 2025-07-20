@@ -417,5 +417,6 @@ FROM dup WHERE rn = 1 AND NOT EXISTS (SELECT 1 FROM author_reviewtext AS art
 - **Error Handling**: Separate paths for error records
 
 
-
+What next??
+Analyze the data using power bi. Stay tune for the update.
 
